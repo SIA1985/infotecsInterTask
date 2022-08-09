@@ -7,16 +7,17 @@
 
 
 #define LOG(a) std::cerr << "Error: " << a << '\n';
+
 #define CONSOLE(a) std::cout << a << '\n';
 
 
 //First subprogram
-Errors CheckStringLengthAndContetnt(std::string& __string)
+bool CheckStringLengthAndContetnt(std::string& __string)
 {
 	if (__string.length() > 64)
 	{
 		LOG("Input string is longer then 64 symbols")
-		return Errors::InvalidInput; 
+		return false;
 	}
 
 	int i = 0;
@@ -25,12 +26,12 @@ Errors CheckStringLengthAndContetnt(std::string& __string)
 		if (__string[i] < '0' || __string[i] > '9')
 		{
 			LOG("Input string contains symbols that are not numbers")
-			return Errors::InvalidInput;
+			return false;
 		}
 		i++;
 	}
 
-	return Errors::NoErrors;
+	return true;
 }
 
 void StringProcessing(std::string& __string)

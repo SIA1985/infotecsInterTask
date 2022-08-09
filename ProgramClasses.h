@@ -6,15 +6,6 @@
 #include <mutex>
 #include <condition_variable>
 
-// Enums
-enum class Errors
-{
-	InvalidInput,
-	BufferContainsData,
-	InvalidDelegate, //?
-	NoErrors
-};
-
 // Delegate
 class Subprogram; //Forward declaration
 
@@ -41,6 +32,22 @@ private:
 	DelegateContainer<Subprogram, void(Subprogram::*)()>* subscriberData = nullptr;
 };
 
+
+// SynchroObject
+class SynchroObject
+{
+public:
+	std::mutex mutex;
+	std::condition_variable conditionalVariable;
+
+	void InverseSynchroFlag() { SynchroFlag = !SynchroFlag; }
+	bool& GetSynchroFlag() { return SynchroFlag; }
+
+private:
+	bool SynchroFlag = false;
+};
+
+
 // Base classes
 template <typename ContainerType>
 class Buffer
@@ -48,13 +55,15 @@ class Buffer
 public:
 	Buffer() {};
 
-	void SetData(ContainerType __data) { dataContainer = __data; StateDelegate.Call(); }
+	void SetData(ContainerType __data) { dataContainer = __data; OnBufferSetSignature.Call(); }
 
 	ContainerType GetData() { return dataContainer; }
 
 	void ClearData() { dataContainer = ContainerType(); }
 
-	Delegate StateDelegate;
+	Delegate OnBufferSetSignature;
+
+	SynchroObject synchroObject;
 
 protected:
 	ContainerType dataContainer;
@@ -66,51 +75,12 @@ class Subprogram
 public:
 	Subprogram(Buffer<std::string>* __buffer) { buffer = __buffer; };
 
-	virtual Errors TaskExecution() = 0;
+	virtual void TaskExecution() {};
 
-	virtual void DelegateFunction() = 0;
+	virtual void OnBufferSet() {};
 
 	Buffer<std::string>* GetBuffer() { return buffer; }
 
 protected:
 	Buffer<std::string>* buffer = nullptr;
-};
-
-//Main classes
-//class CommonBuffer : public Buffer<std::string>
-//{
-//public:
-//	CommonBuffer() {};
-//};
-
-class OfflineBuffer : public Buffer<std::vector<int>>
-{
-public:
-	OfflineBuffer() {};
-
-	void AddData(int __data) { dataContainer.push_back(__data); }
-};
-
-class Subprogram_1 : public Subprogram
-{
-public:
-	Subprogram_1(Buffer<std::string>* __buffer) : Subprogram(__buffer) {}
-
-	Errors TaskExecution() override;
-
-	void DelegateFunction() override {};
-};
-
-class Subprogram_2 : public Subprogram
-{
-public:
-	Subprogram_2(Buffer<std::string>* __buffer, OfflineBuffer* __offlineBuffer) : Subprogram(__buffer)
-	{ offlineBuffer = __offlineBuffer; }
-
-	Errors TaskExecution() override;
-
-	void DelegateFunction() override;
-
-private:
-	OfflineBuffer* offlineBuffer = nullptr;
 };

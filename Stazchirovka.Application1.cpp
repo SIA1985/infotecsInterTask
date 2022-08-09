@@ -1,5 +1,5 @@
-﻿#include "ProgramClasses.h"
-
+﻿#include "Appliation1Classes.h"
+//Add delegate OnBreakConnection
 int main()
 {
 	Buffer<std::string>* PtrCommonBuffer = new Buffer<std::string>();
@@ -8,11 +8,12 @@ int main()
 	Subprogram_1* PtrSubprogram_1 = new Subprogram_1(PtrCommonBuffer);
 	Subprogram_2* PtrSubprogram_2 = new Subprogram_2(PtrCommonBuffer, PtrOfflineBuffer);
 
-	PtrSubprogram_2->GetBuffer()->StateDelegate.Subscribe(PtrSubprogram_2, &Subprogram::DelegateFunction);
+	PtrSubprogram_2->GetBuffer()->OnBufferSetSignature.Subscribe(PtrSubprogram_2, &Subprogram::OnBufferSet);
 	//add thread
 
-	while (1)
-	{
-		PtrSubprogram_1->TaskExecution();
-	}
+
+	std::thread Thread2(&Subprogram_2::TaskExecution, PtrSubprogram_2);
+	Thread2.detach();
+
+	PtrSubprogram_1->TaskExecution();
 }
